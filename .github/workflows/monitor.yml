@@ -1,0 +1,42 @@
+name: A股5分钟K线实时监测
+
+on:
+  schedule:
+    # 每5分钟运行一次 (A股交易时段 09:30-15:00, 周一到周五)
+    # GitHub Actions cron 是 UTC 时间, 北京时间 09:30 = UTC 01:30
+    - cron: '*/5 1-7 * * 1-5'   # UTC 01:00-07:55, 每5分钟 (对应北京时间 09:00-15:55)
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install requests akshare
+
+      - name: 下载上次状态
+        uses: actions/download-artifact@v4
+        with:
+          name: monitor-state
+          path: .
+        continue-on-error: true
+
+      - name: 运行监测
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: python monitor.py
+
+      - name: 上传状态
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-state
+          path: monitor_state.json
+          retention-days: 1
