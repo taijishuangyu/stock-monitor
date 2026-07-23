@@ -54,10 +54,8 @@ def is_trading_time():
     if now.weekday() >= 5:
         return False
     t = now.time()
-    return ((t >= datetime.strptime("09:30", "%H:%M").time() and
-             t <= datetime.strptime("11:30", "%H:%M").time()) or
-            (t >= datetime.strptime("13:00", "%H:%M").time() and
-             t <= datetime.strptime("15:00", "%H:%M").time()))
+    return (t >= datetime.strptime("09:20", "%H:%M").time() and
+            t <= datetime.strptime("15:05", "%H:%M").time())
 
 # ═══════════════════════════════════════════════════════
 # 数据获取
