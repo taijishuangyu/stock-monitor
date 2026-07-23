@@ -62,21 +62,7 @@ def is_trading_time():
 # ═══════════════════════════════════════════════════════
 
 def get_klines(code):
-    """同花顺5分钟K线（akshare）"""
-    try:
-        import akshare as ak
-        df = ak.stock_zh_a_hist_min_em(symbol=code, period='5', adjust='')
-        if df is not None and not df.empty:
-            return [{
-                "time": row["时间"],
-                "open": row["开盘"], "close": row["收盘"],
-                "high": row["最高"], "low": row["最低"],
-                "volume": row["成交量"],
-            } for _, row in df.iterrows()]
-    except Exception as e:
-        print(f"  ⚠ akshare获取{code}失败: {e}")
-    
-    # 备用：新浪财经
+    """新浪财经5分钟K线（统一数据源）"""
     prefix = "sh" if code.startswith(("6", "9")) else "sz"
     url = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData"
     params = {"symbol": f"{prefix}{code}", "scale": "5", "ma": "no", "datalen": "200"}
@@ -87,6 +73,17 @@ def get_klines(code):
         if data:
             return [{"time": d["day"], "open": float(d["open"]), "close": float(d["close"]),
                      "high": float(d["high"]), "low": float(d["low"]), "volume": float(d["volume"])} for d in data]
+    except:
+        pass
+    
+    # 备用：akshare
+    try:
+        import akshare as ak
+        df = ak.stock_zh_a_hist_min_em(symbol=code, period='5', adjust='')
+        if df is not None and not df.empty:
+            return [{"time": r["时间"], "open": r["开盘"], "close": r["收盘"],
+                     "high": r["最高"], "low": r["最低"], "volume": r["成交量"]}
+                    for _, r in df.iterrows()]
     except:
         pass
     return []
